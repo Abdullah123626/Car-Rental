@@ -1,105 +1,106 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Menu, X } from "lucide-react";
 import Footer from "../Footer/Footer";
 import Header from "../Header/Header";
 import { useNavigate } from "react-router-dom";
-
-// IMAGES
-import cargtr from "../../images/cargtr.png";
-import roolsroyce from "../../images/rollyroyce.png";
-import koenigsegg from "../../images/koenigsegg.png";
-import allnewrush from "../../images/allnewrush.png";
-import crv from "../../images/crv.png";
-import mgzx from "../../images/mgzx.png";
-import mgzs from "../../images/mgzs.png";
-import mgzxexite from "../../images/mgzxexite.png";
+import { toast } from "react-toastify";
+import serverRequestHandler from "../../Utils/http.Js";
+import { ENDPOINTS } from "../../Utils/EndPoint.Js";
 
 function NavBarTop() {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [cars, setCars] = useState([
-    {
-      name: "Koenigsegg",
-      price: "133500",
-      oldPrice: "180000",
-
-      img: koenigsegg,
-      liked: true,
-    },
-    {
-      name: "Nissan GT - R",
-      price: "236500",
-      oldPrice: "250000",
-      img: cargtr,
-      liked: true,
-    },
-    {
-      name: "Rolls-Royce",
-      price: "238500",
-      oldPrice: "280000",
-      img: roolsroyce,
-      liked: true,
-    },
-    {
-      name: "All New Rush",
-      price: "19500",
-oldPrice: "21500",
-      img: allnewrush,
-      liked: false,
-    },
-    {
-      name: "CR - V",
-      price: "14500",
-      oldPrice: "18000",
-      img: crv,
-      liked: false,
-    },
-    {
-      name: "All New Terios",
-      price: "17500",
-      oldPrice: "21500",
-      img: allnewrush,
-      liked: false,
-    },
-    {
-      name: "MG ZX Exclusive",
-      price: "12500",
-      oldPrice: "18500",
-      img: mgzx,
-      liked: false,
-    },
-    {
-      name: "New MG ZS",
-      price: "18500",
-      oldPrice: "21500",
-      img: mgzs,
-      liked: false,
-    },
-    {
-      name: "MG ZX Excite",
-      price: "23500",
-      oldPrice: "34500",
-      img: mgzxexite,
-      liked: false,
-    },
-  ]);
-
+  const [brands, setBrands] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [maxPrice, setMaxPrice] = useState(100000);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState(100000);
+  const MAX_LIMIT = 100000;
+  const [searchText, setSearchText] = useState("");
+  const [cars, setCars] = useState([]);
+  const [queryparams, setQueryparams] = useState({ page: 1, pageSize: 5 });
   const [active, setActive] = useState("All");
 
-  const tabs = ["All", "Petrol", "Diesel", "CNG"];
+  const tabs = [
+    { label: "All", value: null },
+    { label: "Petrol", value: "petrol" },
+    { label: "Diesel", value: "diesel" },
+    { label: "CNG", value: "cng" },
+    { label: "Electric", value: "electric" },
+  ];
 
-  const toggleLike = (index) => {
-    const updated = [...cars];
-    updated[index].liked = !updated[index].liked;
-    setCars(updated);
+  const toggleLike = async (index) => {
+    const car = cars[index];
+    const isLiked = car.liked;
+    try {
+      if (isLiked) {
+        await serverRequestHandler(ENDPOINTS.removeFavorite, "post", { car: car._id });
+        toast.success("Removed from favourites");
+      } else {
+        await serverRequestHandler(ENDPOINTS.addFavorite, "post", { car: car._id });
+        toast.success("Added to favourites");
+      }
+      const updated = [...cars];
+      updated[index].liked = !isLiked;
+      setCars(updated);
+    } catch (error) {
+      toast.error("Failed to update favourites");
+    }
   };
+
+  const loadmore = () => {
+    setQueryparams((prev) => ({ ...prev, page: prev.page + 1 }));
+  };
+
+  const toggleBrand = (brandId) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brandId) ? prev.filter((b) => b !== brandId) : [...prev, brandId]
+    );
+  };
+
+  const getBrands = async () => {
+    try {
+      const response = await serverRequestHandler(ENDPOINTS.brands, "get");
+      setBrands(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.log("Brands error:", error);
+    }
+  };
+
+  const getproducts = async (page = queryparams.page, brandFilters = selectedBrands, fuel = active, priceMax = appliedMaxPrice) => {
+    try {
+      let url = ENDPOINTS.products + `?page=${page}&pageSize=${queryparams.pageSize}`;
+      if (brandFilters.length > 0) {
+        brandFilters.forEach((id) => { url += `&brand=${id}`; });
+      }
+      if (fuel !== "All" && fuel !== null) {
+        const fuelValue = tabs.find(t => t.label === fuel)?.value;
+        if (fuelValue) url += `&fuelType=${fuelValue}`;
+      }
+      url += `&maxPrice=${priceMax}`;
+      const response = await serverRequestHandler(url, "get");
+      setCars((prev) => page === 1 ? response : [...prev, ...response]);
+    } catch (error) {
+      toast.error("Failed to fetch products");
+      console.log("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => { getBrands(); getproducts(1, [], "All", 100000); }, []);
+
+  useEffect(() => {
+    setQueryparams((prev) => ({ ...prev, page: 1 }));
+    getproducts(1, selectedBrands, active, appliedMaxPrice);
+  }, [selectedBrands, active, appliedMaxPrice]);
+
+  useEffect(() => {
+    if (queryparams.page !== 1) getproducts(queryparams.page, selectedBrands, active, appliedMaxPrice);
+  }, [queryparams.page]);
 
   return (
     <div>
       <div className="bg-[#F6F7F9] min-h-screen">
-        <Header />
+        <Header onSearch={(val) => setSearchText(val)} favCount={cars.filter(c => c.liked).length} />
 
         {/* MOBILE FILTER BUTTON */}
         <div className="lg:hidden px-4 pt-4">
@@ -122,30 +123,28 @@ oldPrice: "21500",
         {/* TOP FILTER SECTION */}
         <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
           <div className="flex flex-row justify-between items-center gap-3 mb-4 flex-wrap">
-  
-  <h2 className="text-sm sm:text-base md:text-lg text-[#90A3BF] font-medium">
-    Available Cars
-  </h2>
+            <h2 className="text-sm sm:text-base md:text-lg text-[#90A3BF] font-medium">
+              Available Cars
+            </h2>
 
-  <button className="text-sm sm:text-base text-[#3563E9] whitespace-nowrap cursor-pointer">
-    View All
-  </button>
-
-</div>
+            <button className="text-sm sm:text-base text-[#3563E9] whitespace-nowrap cursor-pointer">
+              View All
+            </button>
+          </div>
           {/* TABS */}
           <div className="flex flex-wrap gap-2 sm:gap-4">
             {tabs.map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActive(tab)}
+                key={tab.label}
+                onClick={() => setActive(tab.label)}
                 className={`px-4 sm:px-6 py-2 text-sm rounded-md border transition
                 ${
-                  active === tab
+                  active === tab.label
                     ? "border-orange-500 text-black bg-white"
                     : "border-gray-300 text-gray-400"
                 }`}
               >
-                {tab}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -153,7 +152,6 @@ oldPrice: "21500",
 
         {/* MAIN LAYOUT */}
         <div className="flex px-4 sm:px-6 lg:px-10 gap-6">
-
           {/* SIDEBAR */}
           <aside
             className={`
@@ -178,62 +176,57 @@ oldPrice: "21500",
             </div>
 
             <div className="mb-8">
-              <h3 className="text-xs font-bold text-slate-400 mb-4">
-                TYPE
-              </h3>
+              <h3 className="text-xs font-bold text-slate-400 mb-4">TYPE</h3>
 
               <div className="space-y-3">
-                {[
-                  "Mehran (16)",
-                  "Premio (20)",
-                  "Xli car (14)",
-                  "Tz prado (14)",
-                ].map((item) => (
+                {brands.map((brand) => (
                   <label
-                    key={item}
-                    className="flex items-center text-[#90A3BF] text-sm"
+                    key={brand._id}
+                    className="flex items-center text-[#90A3BF] text-sm cursor-pointer"
                   >
                     <input
                       type="checkbox"
-                      className="w-4 h-4 accent-[#90A3BF]"
+                      className="w-4 h-4 accent-orange-500"
+                      checked={selectedBrands.includes(brand._id)}
+                      onChange={() => toggleBrand(brand._id)}
                     />
-
-                    <span className="ml-3">{item}</span>
+                    <span className="ml-3 capitalize">{brand.name}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <h3 className="text-xs font-bold text-[#90A3BF] mb-4">
-                PRICE
-              </h3>
+              <h3 className="text-xs font-bold text-[#90A3BF] mb-4">PRICE</h3>
 
-              <div className="relative h-2 w-full bg-[#90A3BF] rounded-full">
-                <div className="absolute h-full w-3/4 bg-orange-500 rounded-full"></div>
+              <input
+                type="range"
+                min={0}
+                max={MAX_LIMIT}
+                step={1000}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                onMouseUp={() => setAppliedMaxPrice(maxPrice)}
+                onTouchEnd={() => setAppliedMaxPrice(maxPrice)}
+                className="w-full accent-orange-500 cursor-pointer"
+              />
 
-                <div className="absolute -top-1.5 left-[65%] h-5 w-5 bg-white border-4 border-orange-500 rounded-full cursor-pointer"></div>
+              <div className="mt-2 flex justify-between text-xs text-[#596780]">
+                <span>Rs. 0</span>
+                <span className="font-semibold text-orange-500">Max. Rs. {maxPrice.toLocaleString()}</span>
               </div>
-
-              <div className="mt-4 font-semibold text-[#596780]">
-                Max. 72.00
-              </div>
-
-
-          
             </div>
-                  <button
-  onClick={() => navigate("/Signup")}
-  className="w-full text-left  text-[17px] text-[#90A3BF] mt-4 lg:mt-50 cursor-pointer hover:text-gray-600 transition"
->
-Log Out
-</button>
+            <button
+              onClick={() => {localStorage.clear();navigate("/");}}
+              className="w-full text-left  text-[17px] text-[#90A3BF] mt-4 lg:mt-30 cursor-pointer hover:text-gray-600 transition">
+              Log Out 
+            </button>
           </aside>
 
           {/* CAR GRID */}
           <main className="flex-1 w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {cars.map((car, i) => (
+              {cars.filter(car => car.title?.toLowerCase().includes(searchText.toLowerCase())).map((car, i) => (
                 <div
                   key={i}
                   className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition"
@@ -241,7 +234,7 @@ Log Out
                   {/* TOP */}
                   <div className="flex justify-between items-center">
                     <h2 className="font-semibold text-sm sm:text-base">
-                      {car.name}
+                      {car.title}
                     </h2>
 
                     <Heart
@@ -259,14 +252,14 @@ Log Out
 
                   {/* IMAGE */}
                   <img
-                    src={car.img}
-                    alt={car.name}
+                    src={"http://localhost:5000/" + car.pictures[0]}
+                    alt={car.title}
                     className="w-full h-[110px] sm:h-[130px] object-contain my-6"
                   />
 
                   {/* FEATURES */}
                   <div className="flex justify-between text-[10px] sm:text-xs text-gray-400 mb-4">
-                    <span>⛽ Mileage</span>
+                    <span>⛽ Mileage {car.mileage}</span>
                     <span>⚙️ Manual</span>
                     <span>👤 Driver</span>
                   </div>
@@ -275,23 +268,22 @@ Log Out
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-bold text-base sm:text-lg">
-                        {car.price}
+                        {car.realPrice}
 
-                        <span className="text-xs text-gray-400">
-                          {" "}
-                          /day
-                        </span>
+                        <span className="text-xs text-gray-400"> /day</span>
                       </p>
 
-                      {car.oldPrice && (
+                      {car.discountedPrice && (
                         <p className="text-xs text-gray-400 line-through">
-                          {car.oldPrice}
+                          {car.discountedPrice}
                         </p>
                       )}
                     </div>
 
                     <button
-                      onClick={() => navigate("/Detail")}
+                      onClick={() =>
+                        navigate(`/Detail/${car._id}`, { state: { car } })
+                      }
                       className="bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm cursor-pointer"
                     >
                       Rent Now
@@ -303,7 +295,10 @@ Log Out
 
             {/* BUTTON */}
             <div className="flex justify-center mt-8 mb-10">
-              <button className="bg-orange-500 text-white px-5 py-2 rounded-md cursor-pointer">
+              <button
+                className="bg-orange-500 text-white px-5 py-2 rounded-md cursor-pointer"
+                onClick={loadmore}
+              >
                 Show More Cars
               </button>
             </div>
@@ -315,5 +310,5 @@ Log Out
     </div>
   );
 }
-
+ 
 export default NavBarTop;

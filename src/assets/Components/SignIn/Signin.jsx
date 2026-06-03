@@ -2,194 +2,120 @@ import React, { useState } from "react";
 import blackcar from "../../images/blackcar.png";
 import emailIcon from "../../images/email.png";
 import eye from "../../images/eye.png";
+import whitecar from "../../images/whitecar.png";
 import { useNavigate } from "react-router-dom";
+import { ENDPOINTS } from "../../Utils/EndPoint.Js";
+import serverRequestHandler from "../../Utils/http.Js";
+import { toast } from "react-toastify";
 
 const Signin = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ VALIDATION
-  const validate = () => {
-    let newErrors = {};
-
-
-
-
-
-
-   if (!email.trim()) {
-  newErrors.email = "Email is required";
-} 
-else if (
-  !/^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com|outlook\.com)$/.test(email)
-) {
-  newErrors.email = "Enter valid email (gmail, yahoo, or outlook only)";
-}
-
-
-
-
-
-
-
-
-if (!password) {
-  newErrors.password = "Password is required";
-} 
-else if (password.length < 8) {
-  newErrors.password = "Password must be at least 8 characters long";
-} 
-else if (!/[A-Z]/.test(password)) {
-  newErrors.password = "Password must include at least one uppercase letter";
-} 
-else if (!/[a-z]/.test(password)) {
-  newErrors.password = "Password must include at least one lowercase letter";
-} 
-else if (!/[0-9]/.test(password)) {
-  newErrors.password = "Password must include at least one number";
-} 
-else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-  newErrors.password = "Password must include at least one special character";
-} 
-else if (/\s/.test(password)) {
-  newErrors.password = "Password must not contain spaces";
-}
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError("");
   };
 
-  // ✅ SUBMIT
-  const handleSubmit = () => {
-    if (!validate()) return;
-
-    console.log("Login Data:", { email, password });
-    alert("Login Successful ✅");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.username || !formData.password) {
+      setError("Please fill all fields");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await serverRequestHandler(ENDPOINTS.login, "post", {
+        email: formData.username.trim(),
+        password: formData.password.trim(),
+      });
+      localStorage.setItem("Token", response.token);
+      toast.success("Login successful!");
+      navigate("/UserSelection", { replace: true });
+    } catch (error) {
+      toast.error(error?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full">
+      <div className="flex flex-col lg:flex-row min-h-screen">
 
-      {/* LEFT SECTION */}
-      <div className="bg-[#FF6915] w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-10 sm:py-12 lg:p-12">
-
-        <img
-          src={blackcar}
-          alt="Car"
-          className="w-[70%] sm:w-[60%] md:w-[55%] lg:w-[75%] max-w-[400px] mb-6"
-        />
-
-        <div className="text-center">
-          <h3 className="text-xl sm:text-2xl font-semibold mb-2 text-white">
-            Welcome
-          </h3>
-
-          <p className="text-sm sm:text-base text-white">
-            Just a Showroom of clicks and we start
-          </p>
+        <div className="bg-[#FF6915] w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12">
+          <div className="flex flex-col md:flex-row justify-center items-center">
+            <img src={blackcar} className="w-3/4 sm:w-3/5 md:w-2/5 md:pb-44" alt="car" />
+            <img src={whitecar} className="w-3/4 sm:w-3/5 md:w-3/5" alt="car" />
+          </div>
+          <div className="text-center mt-8">
+            <h3 className="text-2xl font-[600] mb-2 text-white">Welcome Back</h3>
+            <p className="text-white">Sign in to continue your journey</p>
+          </div>
         </div>
-      </div>
 
-      {/* RIGHT SECTION */}
-      <div className="bg-white w-full lg:w-1/2 flex items-center justify-center px-6 py-10 sm:py-12 lg:p-8">
+        <div className="bg-white w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-2xl">
+            <p className="text-black text-3xl sm:text-4xl font-[400] mb-8">Sign In</p>
 
-        <div className="w-full max-w-md">
+            <form onSubmit={handleSubmit}>
 
-          <p className="text-black text-2xl sm:text-3xl md:text-4xl font-normal mb-8 text-center lg:text-left">
-            Sign In
-          </p>
+              {/* EMAIL */}
+              <div className="relative mb-4">
+                <input
+                  name="username"
+                  type="email"
+                  placeholder="Email"
+                  value={formData.username}
+                  onChange={handleChange}
+                  autoComplete="off"
+                  className="bg-[#F4F2F2] border border-gray-300 rounded-md px-3 w-full h-11"
+                />
+                <img src={emailIcon} className="w-4 h-4 absolute right-3 top-3" alt="" />
+              </div>
 
-          {/* EMAIL */}
-          <div className="flex flex-col mb-4 relative w-full">
-            <label className="mb-2 text-black text-sm sm:text-base">
-              Email
-            </label>
+              {/* PASSWORD */}
+              <div className="relative mb-4">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  autoComplete="off"
+                  className="bg-[#F4F2F2] border border-gray-300 rounded-md px-3 pr-10 w-full h-11"
+                />
+                <img
+                  src={eye}
+                  className="w-4 h-4 absolute right-3 top-3 cursor-pointer"
+                  alt=""
+                  onClick={() => setShowPassword((p) => !p)}
+                />
+              </div>
 
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="bg-[#F4F2F2] border border-gray-300 rounded-md px-3 pr-10 w-full h-10 sm:h-11 text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+              {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
-            <img
-              src={emailIcon}
-              alt=""
-              className="w-4 h-4 absolute right-3 top-[55%] transform -translate-y-1/2 pointer-events-none"
-            />
+              <button type="submit" disabled={loading} className="bg-[#FF6915] text-white w-full h-10 rounded-md disabled:opacity-60">
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
 
-            {errors.email && (
-              <p className="text-[#FF6915] font-[500] text-[13px] mt-1">
-                {errors.email}
+              <button type="button" onClick={() => navigate("/Signup")} className="bg-black text-white w-full h-10 rounded-md mt-4">
+                Create Account
+              </button>
+
+              <p onClick={() => navigate("/ResetPassword")} className="text-center text-sm text-[#FF6915] mt-4 cursor-pointer hover:underline">
+                Forgot Password?
               </p>
-            )}
+
+            </form>
           </div>
-
-          {/* PASSWORD */}
-          <div className="flex flex-col mb-4 relative w-full">
-            <label className="mb-2 text-black text-sm sm:text-base">
-              Password
-            </label>
-
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="bg-[#F4F2F2] border border-gray-300 rounded-md px-3 pr-10 w-full h-10 sm:h-11 text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <img
-              src={eye}
-              alt=""
-              className="w-4 h-4 absolute right-3 top-[57%] transform -translate-y-1/2 pointer-events-none"
-            />
-
-            {errors.password && (
-              <p className="text-[#FF6915] font-[500] text-[13px] mt-1">
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          {/* FORGOT PASSWORD */}
-          <div className="text-right mb-6">
-            <h3
-              className="text-[#FF6915] underline underline-offset-2 decoration-2 cursor-pointer text-sm"
-              onClick={() => navigate("/ResetPassword")}
-            >
-              Forgotten password
-            </h3>
-          </div>
-
-          {/* BUTTON */}
-          <div className="flex justify-center">
-            <button
-              className="bg-[#FF6915] text-white font-medium rounded-md hover:bg-orange-600 transition w-full h-10 sm:h-11"
-              onClick={handleSubmit}
-            >
-              Sign In
-            </button>
-          </div>
-
-          {/* SIGNUP */}
-          <p className="text-center mt-4 text-sm sm:text-base">
-            Don’t have an account?{" "}
-            <span
-              className="text-[#FF6915] font-medium cursor-pointer"
-              onClick={() => navigate("/Signup")}
-            >
-              Sign Up
-            </span>
-          </p>
-
         </div>
-      </div>
 
+      </div>
     </div>
   );
 };

@@ -33,14 +33,13 @@ const UserSelection = () => {
             <div className="w-full flex flex-col gap-6">
 
               <button
-                className="bg-[#FF6915] text-white text-sm rounded-sm hover:bg-orange-600 transition w-full h-10"  onClick={() => navigate("/NavBarTop")}
+                className="bg-[#FF6915] text-white text-sm rounded-sm hover:bg-orange-600 transition w-full h-10" onClick={() => navigate("/NavBarTop", { replace: true })}
               >
                 Rent a Car
               </button>
 
               <button
-                className="bg-[#FF6915] text-white text-sm rounded-sm hover:bg-orange-600 transition w-full h-10"     onClick={() => navigate("/HomeCarRent")}            
-
+                className="bg-[#FF6915] text-white text-sm rounded-sm hover:bg-orange-600 transition w-full h-10" onClick={() => navigate("/HomeCarRent", { replace: true })}
               >
                 Own a Showroom
               </button>

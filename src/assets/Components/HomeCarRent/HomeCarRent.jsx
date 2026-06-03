@@ -1,67 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Menu, X } from "lucide-react";
 import Footer from "../Footer/Footer";
-
-// IMAGES
+import { ENDPOINTS } from "../../Utils/EndPoint.Js";
+import serverRequestHandler from "../../Utils/http.Js";
 import cargtr from "../../images/cargtr.png";
-import ammar from "../../images/amaar.png";
-import showroom from "../../images/showroom.png";
-import mg from "../../images/mg.png";
-import suzu from "../../images/suzu.png";
-import porshe from "../../images/porshe.png";
-import carss from "../../images/cars.png";
-import roolsroyce from "../../images/rollyroyce.png";
 import Header from "../Header/Header";
 import { useNavigate } from "react-router-dom";
+import profile from "../../images/profile.png";
+
+const BASE_URL = "http://localhost:5000/";
 
 function HomeCarRent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState("Home");
   const navigate = useNavigate();
 
-  const cars = [
-    { name: "Nissan GT - R", price: "33,000", img: cargtr },
-    { name: "Rolls - Royce", price: "21,000", img: roolsroyce },
-    { name: "Nissan GT - R", price: "43,000", img: cargtr },
-  ];
+  const [cars, setCars] = useState([]);
+  const [showrooms, setShowrooms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [favCount, setFavCount] = useState(0);
 
-  const showrooms = [
-    {
-      name: "Amar & Farrukh Rent Car",
-      location: "Islamabad",
-      cars: 33,
-      img: ammar,
-    },
-    {
-      name: "Luxury Drive Center",
-      location: "Lahore",
-      cars: 18,
-      img: showroom,
-    },
-    {
-      name: "BMW Showroom",
-      location: "Karachi",
-      cars: 25,
-      img: mg,
-    },
-    {
-      name: "Audi Rent Hub",
-      location: "Islamabad",
-      cars: 14,
-      img: suzu,
-    },
-    {
-      name: "Ferrari Club",
-      location: "Dubai Section",
-      cars: 7,
-      img: porshe,
-    },
-    {
-      name: "Mercedes Premium Rent",
-      location: "Lahore",
-      cars: 22,
-      img: carss,
-    },
-  ];
+  const getCars = async () => {
+    try {
+      setLoading(true);
+      const response = await serverRequestHandler(ENDPOINTS.products, "get");
+      setCars(response);
+    } catch (error) {
+      console.log("ERROR:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showroms = async () => {
+    try {
+      setLoading(true);
+      const response = await serverRequestHandler(ENDPOINTS.showroom, "get");
+      setShowrooms(response);
+    } catch (error) {
+      console.log("ERROR:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProfile = async () => {
+    try {
+      const res = await serverRequestHandler(ENDPOINTS.viewProfile, "get");
+      setUserProfile(res);
+    } catch (e) {
+      console.log("Profile error:", e);
+    }
+  };
+
+  const getFavorites = async () => {
+    try {
+      const res = await serverRequestHandler(ENDPOINTS.getFavorites, "get");
+      const list = Array.isArray(res) ? res : res?.data ?? [];
+      setFavCount(list.length);
+    } catch (e) {
+      console.log("Favorites error:", e);
+    }
+  };
+
+  useEffect(() => {
+    getCars();
+    showroms();
+    getProfile();
+    getFavorites();
+  }, []);
 
   return (
     <div>
@@ -104,24 +112,65 @@ function HomeCarRent() {
           <div>
             <p className="text-xs text-gray-400 mb-4">MAIN MENU</p>
 
-            <div className="bg-orange-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 mb-6">
+            <div
+              onClick={() => setActiveMenu("Home")}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 mb-6 cursor-pointer transition ${
+                activeMenu === "Home" ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-orange-50"
+              }`}
+            >
               🏠 Home
             </div>
 
             <p className="text-xs text-gray-400 mb-4">PREFERENCES</p>
 
-            <div className="space-y-3 text-gray-500 text-sm">
-              <p>⚙️ Settings</p>
-              <p>❓ Help & Center</p>
+            <div className="space-y-3 text-sm">
+              {["Settings", "Help & Center"].map((item) => (
+                <div
+                  key={item}
+                  onClick={() => setActiveMenu(item)}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 cursor-pointer transition ${
+                    activeMenu === item ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-orange-50"
+                  }`}
+                >
+                  {item === "Settings" ? "⚙️" : "❓"} {item}
+                </div>
+              ))}
+            </div>
+
+            {/* PROFILE INFO */}
+            {userProfile && (
+              <div className="mt-6 p-3 bg-gray-50 rounded-xl flex items-center gap-3">
+                <img
+                  src={userProfile.profilePic ? (userProfile.profilePic.startsWith("http") ? userProfile.profilePic : BASE_URL + userProfile.profilePic) : profile}
+                  className="w-10 h-10 rounded-full object-cover"
+                  alt="profile"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">{userProfile.firstName} {userProfile.lastName}</p>
+                  <p className="text-xs text-gray-400">{userProfile.email}</p>
+                </div>
+              </div>
+            )}
+
+            {/* FAVORITES COUNT */}
+            <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
+              <Heart size={16} className="text-orange-500" />
+              <span>Favourites</span>
+              {favCount > 0 && (
+                <span className="ml-auto bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">{favCount}</span>
+              )}
             </div>
           </div>
 
-         <button
-  onClick={() => navigate("/Signup")}
-  className="w-full text-left text-gray-400 mt-4 lg:mt-260 cursor-pointer hover:text-gray-600 transition"
->
-  🔓 Log Out
-</button>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              navigate("/");
+            }}
+            className="w-full text-left text-gray-400 mt-4 lg:mt-60 cursor-pointer hover:text-gray-600 transition"
+          >
+            🔓 Log Out
+          </button>
         </div>
 
         {/* MAIN CONTENT */}
@@ -164,23 +213,26 @@ function HomeCarRent() {
               {cars.map((car, i) => (
                 <div
                   key={i}
-                  className="bg-white p-4 rounded-xl shadow-sm w-full max-w-[300px] mx-auto"
+                  onClick={() =>
+                    navigate(`/Detail/${car._id}`, { state: { car } })
+                  }
+                  className="bg-white p-4 rounded-xl shadow-sm w-full max-w-[300px] mx-auto cursor-pointer hover:shadow-md transition"
                 >
                   <div className="flex justify-between">
-                    <h3 className="font-semibold">{car.name}</h3>
+                    <h3 className="font-semibold">{car.title}</h3>
 
                     <Heart size={16} className="text-gray-300" />
                   </div>
 
                   <img
-                    src={car.img}
-                    alt={car.name}
+                    src={"http://localhost:5000/" + car.pictures[0]}
+                    alt={car.title}
                     className="mx-auto my-4 w-[150px] object-contain"
                   />
 
                   <div className="flex justify-between items-center">
                     <p className="font-bold text-sm">
-                      {car.price}
+                      {car.realPrice}
                       <span className="text-gray-400"> /day</span>
                     </p>
 
@@ -206,7 +258,11 @@ function HomeCarRent() {
                   {/* IMAGE */}
                   <div className="h-[160px] w-full overflow-hidden">
                     <img
-                      src={item.img}
+                      src={
+                        item.showRoomPicture?.startsWith("http")
+                          ? item.showRoomPicture
+                          : "http://localhost:5000/" + item.showRoomPicture
+                      }
                       alt="showroom"
                       className="w-full h-full object-cover"
                     />
@@ -215,7 +271,7 @@ function HomeCarRent() {
                   {/* CONTENT */}
                   <div className="p-4">
                     <p className="font-semibold text-sm font-[600] text-black">
-                      {item.name}
+                      {item.showRoomName}
                     </p>
 
                     <p className="text-xs font-[600] text-black mt-1">
@@ -223,7 +279,7 @@ function HomeCarRent() {
                     </p>
 
                     <p className="text-xs font-[600] text-black mt-1">
-                      Available cars: {item.cars}
+                      Available cars: {item.carCount}
                     </p>
 
                     <div className="flex flex-col h-full mt-3">
