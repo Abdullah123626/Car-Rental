@@ -8,7 +8,7 @@ export const ENDPOINTS = {
   forgotpassword: "/auth/forgot",
   resetpassword: "/auth/reset",
   viewProfile: "/auth/viewProfile",
-  updateProfile: "/auth/updateProfile",
+  updateProfile: "/auth/updateProfile", 
 
   // CARS
   products: "/car/getAll",
@@ -88,7 +88,7 @@ export const ENDPOINTS = {
     },
 
     showroomcars: (pageno = 1, pagesize = 8, filter, showroomId) => {
-        return {
+        return { 
             link: `/showroom/getAll?page=${pageno}&pageSize=${pagesize}`,
             recentcar: `/car/getAll?page=${pageno}&pageSize=${pagesize}`,
             bookedcars: `/booking/getAll?page=${pageno}&pageSize=${pagesize}&status=${filter}`,

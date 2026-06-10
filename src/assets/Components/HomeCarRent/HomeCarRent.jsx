@@ -7,6 +7,7 @@ import cargtr from "../../images/cargtr.png";
 import Header from "../Header/Header";
 import { useNavigate } from "react-router-dom";
 import profile from "../../images/profile.png";
+import {toast} from "react-toastify";
 
 const BASE_URL = "http://localhost:5000/";
 
@@ -21,18 +22,281 @@ function HomeCarRent() {
   const [userProfile, setUserProfile] = useState(null);
   const [favCount, setFavCount] = useState(0);
 
-  const getCars = async () => {
-    try {
+
+
+
+
+
+  // TOGGLE LIKE
+// const toggleLike = async (index) => {
+//   const car = cars[index];
+//   const isLiked = car.liked;
+
+//   try {
+//     if (isLiked) {
+//       await serverRequestHandler(ENDPOINTS.removeFavorite, "post", { car: car._id });
+//       toast.success("Removed from favourites");
+//     } else {
+//       await serverRequestHandler(ENDPOINTS.addFavorite, "post", { car: car._id });
+//       toast.success("Added to favourites");
+//     }
+
+//     // ✅ Immutable update
+//     const updated = cars.map((c, i) =>
+//       i === index ? { ...c, liked: !isLiked } : c
+//     );
+//     setCars(updated);
+
+//   } catch (error) {
+//     toast.error("Failed to update favourites");
+//   }
+// };
+
+// LIKE TOGGLE API 
+// const toggleLike = async (index) => {
+//   const car = cars[index];
+//   const isLiked = car.liked;
+
+//   try {
+//     if (isLiked) {
+//       await serverRequestHandler(ENDPOINTS.removeFavorite, "post", {
+//         car: car._id,
+//       });
+//       toast.success("Removed from favourites");
+//     } else {
+//       await serverRequestHandler(ENDPOINTS.addFavorite, "post", {
+//         car: car._id,
+//       });
+//       toast.success("Added to favourites");
+//     }
+
+//     const updated = cars.map((c, i) =>
+//       i === index ? { ...c, liked: !isLiked } : c
+//     );
+
+//     setCars(updated);
+//   } catch (error) {
+//     toast.error("Failed to update favourites");
+//   }
+// };
+
+// toggle 
+const toggleLike = async (index) =>{
+  const car = cars[index];
+  const isliked = car.liked;
+  try{
+    if(isliked){await serverRequestHandler(ENDPOPINTS.removeFavorite,"post",{
+      car:car._id,
+    });
+    toast.success("Removed from favourites")
+  }else{
+    await serverRequestHandler(ENDPOINTS.addFavorite, "post" ,{
+      car:car._id,
+    });
+    toast.success("add to Favourites")
+  }const updated = cars.map((c,i)=> i === index ? { ... c ,liked:!isliked}:c);
+  setCars(updated)
+    
+  }catch(error){
+    toast.error("Failed to update favourites")
+  }
+}
+
+ 
+// const toggleLike = async () =>{
+//   const car = cars[index];
+//   const isLiked = car.liked;
+//   try{
+//     if(isLiked) {
+//       await serverRequestHandler(ENDPOINTS.removeFavorite,"post",{
+//         car:car._id,
+//       })
+//       toast.success("Removed From Favourites");
+//     }else{
+//       await serverRequestHandler(ENDPOINTS.addFavorite,"post",{
+//         car:car._id,
+//       })
+//       toast.success("added to Favourties");
+//     }
+//     const updated =cars.map((c,i) => i === index ? {...c,Liked:!isLiked} : c);
+//     setCars(updated);
+//   }
+//   catch(error){
+//     toast.error("failed to update favourites");
+//   }
+// }
+
+
+
+// toggle button for like and unlike 
+// const toggleLiike = async () =>{
+//    const car = cars[index];
+//    const isliked = car.liked;
+//    try{
+//     if(isliked){
+//     await serverRequesthandler (ENDPOINTS.removeFavorite , "post",{
+//     car:car.__id,
+//     });
+//     toast.success("Removed deom Favorites");
+//    }else{
+//     await serverRequesthandler (ENDPOINTS.addFavorite, "post" ,{
+//       car:car._id,
+//     })
+//     toast.success("Added to Favorites");
+//    }
+//    const updated = cars.map((c,i) => i === index  ? {...c , liked:isliked} : c);
+//    setcars(updated);
+//   }catch(error){
+//     toast.error("Failed to update favorites");
+//   }
+
+// }
+
+
+
+// tooggle button 
+// const toggleLiked = async (index) => {
+// const car = cars[index];
+// const isliked = car.liked;
+// try{
+//   await serverRequestHandler(ENDPOINTS.removeFavorite, "post", {
+//     car:car._id,
+//   });
+//   toast.success("Removed from Favorites");
+// }else {
+//   await serverRequestHandler(ENDPOINTS.addFavorite, "post", {
+//     car:car._id,
+//   });
+//   toast.success("Added to Favorites");  
+// }const updated = cars.map((c,i) => i === index ? { ...c , liked:!isliked} : c); 
+// setcars(updated);
+// }catch(error){
+//   toast.error("Failed to update favorites");
+// }
+
+// }
+
+
+// toogle button 
+// const toggleLike = async (index) =>{
+//   const car= cars[index];
+//   const isliked = car.liked;
+//   try{
+//     if(isliked){ await serverRequestHandler (ENDPOINTS.removeFavorite, "post" ,{
+//       car:car._id,
+//     });
+//     toast.success("Removed from Favorities");
+//   } else{
+//     await serverRequestHandler (ENDPOINTS.addFavorite,"post" ,{
+//       car:car._id,
+//     });
+//     toast.success("Added to Favorites");
+//   }const updated = cars.map((c,i) => i=== index ? { ... c , liked:!isliked} : c);
+//   setcars(updated);
+// }catch(error){
+//   toast.error("Failed to update fvourites");
+// }
+   
+
+// }
+
+
+// toggle button 
+// const toggleLike = async (index) => {
+// const car = cars[index];
+// const isliked = car.liked;
+// try{
+//   if(isliked){
+//     await serverRequestHandler (ENDPOINTS.removeFavorite,"post",{
+//       car:car._id,
+//     });
+//     toast.success("Removed to Favourites")
+//   }else{
+//     await serverRequestHandler(ENDPOINTS.addFavourite,"post" ,{
+//       car:car._id,
+//         });
+//         toast.success("add to Favourites")
+
+//   }const updated = cars.map((c,i) => i === index ? {...c,liked:!isliked }:c );
+//   setCars(updated)
+// }catch(error){
+//   toast.error("Failed to update Favourties")
+// }
+// }
+
+
+
+// toggle 
+// const toggleLike = async (index) =>{
+//   const car = cars[index];
+//   const isliked = car.liked;
+//   try{
+//     if(isliked){await serverRequestHandler(ENDPOPINTS.removeFavorite,"post",{
+//       car:car._id,
+//     });
+//     toast.success("Removed from favourites")
+//   }else{
+//     await serverRequestHandler(ENDPOINTS.addFavorite, "post" ,{
+//       car:car._id,
+//     });
+//     toast.success("add to Favourites")
+//   }const updated = cars.map((c,i)=> i === index ? { ... c ,isliked:!liked}:c);
+//   setCars(updated)
+    
+//   }catch(error){
+//     toast.error("Failed to update favourites")
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// GET CARS API 
+  // const getCars = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await serverRequestHandler(ENDPOINTS.products, "get");
+  //     setCars(response);
+  //   } catch (error) {
+  //     console.log("ERROR:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const getCars = async () =>{
+    try{
       setLoading(true);
-      const response = await serverRequestHandler(ENDPOINTS.products, "get");
-      setCars(response);
-    } catch (error) {
-      console.log("ERROR:", error);
-    } finally {
-      setLoading(false);
+      const response = await serverRequestHandler (ENDPOINTS.products,"get")
+setCars(response);
+      
+    }catch(error){
+      console.log(error)
+    }finally{
+      setLoading(false)
     }
   };
 
+
+
+
+
+
+
+
+  // GET SHOWROOM API 
   const showroms = async () => {
     try {
       setLoading(true);
@@ -45,22 +309,32 @@ function HomeCarRent() {
     }
   };
 
+
+
+
+  // GET PROFILE API 
   const getProfile = async () => {
     try {
       const res = await serverRequestHandler(ENDPOINTS.viewProfile, "get");
       setUserProfile(res);
-    } catch (e) {
-      console.log("Profile error:", e);
+    } catch (error) {
+      console.log("Profile error:", error);
     }
   };
 
+
+
+
+
+
+  // GET 
   const getFavorites = async () => {
     try {
       const res = await serverRequestHandler(ENDPOINTS.getFavorites, "get");
-      const list = Array.isArray(res) ? res : res?.data ?? [];
+      const list = Array.isArray(res) ? res : (res?.data ?? []);
       setFavCount(list.length);
-    } catch (e) {
-      console.log("Favorites error:", e);
+    } catch (error) {
+      console.log("Favorites error:", error);
     }
   };
 
@@ -115,7 +389,9 @@ function HomeCarRent() {
             <div
               onClick={() => setActiveMenu("Home")}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 mb-6 cursor-pointer transition ${
-                activeMenu === "Home" ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-orange-50"
+                activeMenu === "Home"
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-500 hover:bg-orange-50"
               }`}
             >
               🏠 Home
@@ -129,38 +405,54 @@ function HomeCarRent() {
                   key={item}
                   onClick={() => setActiveMenu(item)}
                   className={`px-4 py-2 rounded-lg flex items-center gap-2 cursor-pointer transition ${
-                    activeMenu === item ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-orange-50"
+                    activeMenu === item
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-500 hover:bg-orange-50"
                   }`}
                 >
                   {item === "Settings" ? "⚙️" : "❓"} {item}
                 </div>
               ))}
-            </div>
+            </div>  
 
-            {/* PROFILE INFO */}
-            {userProfile && (
-              <div className="mt-6 p-3 bg-gray-50 rounded-xl flex items-center gap-3">
-                <img
-                  src={userProfile.profilePic ? (userProfile.profilePic.startsWith("http") ? userProfile.profilePic : BASE_URL + userProfile.profilePic) : profile}
-                  className="w-10 h-10 rounded-full object-cover"
-                  alt="profile"
-                />
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">{userProfile.firstName} {userProfile.lastName}</p>
-                  <p className="text-xs text-gray-400">{userProfile.email}</p>
-                </div>
-              </div>
-            )}
 
             {/* FAVORITES COUNT */}
-            <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
+            <div
+              onClick={() => navigate("/Favourites")}
+              className="mt-4 flex items-center gap-2 text-sm text-gray-500 cursor-pointer"
+            >
               <Heart size={16} className="text-orange-500" />
               <span>Favourites</span>
               {favCount > 0 && (
-                <span className="ml-auto bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">{favCount}</span>
+                <span className="ml-auto bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {favCount}
+                </span>
               )}
             </div>
           </div>
+
+          {/* PROFILE INFO */}
+          {userProfile && (
+            <div className="mt-6 p-3 bg-gray-50 rounded-xl w-56 flex items-center gap-3">
+              <img
+                src={
+                  userProfile.profilePic
+                    ? userProfile.profilePic.startsWith("http")
+                      ? userProfile.profilePic
+                      : BASE_URL + userProfile.profilePic
+                    : profile
+                }
+                className="w-10 h-10 rounded-full object-cover"
+                alt="profile"
+              />
+              <div>
+                <p className="text-sm font-semibold text-gray-700">
+                  {userProfile.firstName} {userProfile.lastName}
+                </p>
+                <p className="text-xs text-gray-400">{userProfile.email}</p>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={() => {
@@ -220,8 +512,17 @@ function HomeCarRent() {
                 >
                   <div className="flex justify-between">
                     <h3 className="font-semibold">{car.title}</h3>
-
-                    <Heart size={16} className="text-gray-300" />
+                    <Heart
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLike(i);
+                      }}
+                      className={`w-5 h-5 cursor-pointer ${
+                        car.liked
+                          ? "fill-red-500 text-red-500"
+                          : "text-[#90A3BF]"
+                      }`}
+                    />{" "}
                   </div>
 
                   <img
@@ -253,7 +554,10 @@ function HomeCarRent() {
               {showrooms.map((item, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm w-full max-w-[300px] mx-auto"
+                  //  onClick={() =>
+                  //   navigate(`/Detail/${item._id}`, { state: { item } })
+                  // }
+                  className="bg-white rounded-xl overflow-hidden shadow-sm w-full max-w-[300px] mx-auto cursor-pointer"
                 >
                   {/* IMAGE */}
                   <div className="h-[160px] w-full overflow-hidden">
@@ -269,7 +573,7 @@ function HomeCarRent() {
                   </div>
 
                   {/* CONTENT */}
-                  <div className="p-4">
+                  <div className="p-4"> 
                     <p className="font-semibold text-sm font-[600] text-black">
                       {item.showRoomName}
                     </p>

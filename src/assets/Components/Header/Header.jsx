@@ -76,7 +76,9 @@ const Header = ({ onSearch, favCount = 0 }) => {
 
         {/* LEFT */}
         <div className="flex items-center gap-4 flex-1">
-          <h2 className="text-[#FF5C00] text-xl sm:text-2xl font-bold whitespace-nowrap">MORENT</h2>
+          <h2
+          onClick={() => navigate("/HomeCarRent")}
+           className="text-[#FF5C00] text-xl sm:text-2xl font-bold whitespace-nowrap cursor-pointer">MORENT</h2>
 
           {/* SEARCH - inline, no nested component */}
           <div className="hidden sm:flex items-center border border-[#C3D4E966] rounded-full px-3 py-2 bg-white h-9 w-full max-w-[400px]">
@@ -144,7 +146,7 @@ const Header = ({ onSearch, favCount = 0 }) => {
               <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
             </div>
             {showProfile && (
-              <div className="absolute right-0 top-12 w-52 bg-white shadow-lg rounded-xl p-4 z-50 border border-gray-100">
+              <div className="absolute right-0 top-12 w-62 bg-white shadow-lg rounded-xl p-4 z-50 border border-gray-100">
                 <p className="text-xs font-bold text-gray-400 mb-3">PROFILE</p>
                 {userProfile ? (
                   <div className="flex items-center gap-3">
